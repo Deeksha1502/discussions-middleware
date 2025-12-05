@@ -2,6 +2,9 @@
   "name": "nodebb-middleware",
   "version": "5.0.0",
   "private": true,
+  "engines": {
+    "node": ">=22"
+  },
   "scripts": {
     "start": "node ./bin/www",
     "backend-test": "nyc mocha 'tests/**/*.spec.js'",

@@ -1,5 +1,6 @@
 const proxyUtils = require('../proxy/proxyUtils.js')
 const proxy = require('express-http-proxy');
+const { URL } = require('url');
 const { NODEBB_SERVICE_URL, nodebb_api_slug, moderation_type } = require('../helpers/environmentVariablesHelper.js');
 let {  moderation_flag } = require('../helpers/environmentVariablesHelper.js');
 moderation_flag = moderation_flag === 'true' ? true : false;
@@ -262,17 +263,19 @@ function proxyObject() {
     proxyReqPathResolver: function (req) {
       let urlParam = req.originalUrl.replace(BASE_REPORT_URL, '');
       logger.info({ "message": `request comming from ${req.originalUrl}` })
-      let query = require('url').parse(req.url).query;
+      const parsedUrl = new URL(req.url, 'http://localhost');
+      let query = parsedUrl.search;
       // logging the Entry events
       telemetryHelper.logAPIEvent(req, 'discussion-middleware');
       if (query) {
-        return require('url').parse(nodebbServiceUrl + urlParam).path
+        const targetUrl = new URL(nodebbServiceUrl + urlParam);
+        return targetUrl.pathname + targetUrl.search;
       } else {
         const incomingUrl = req.protocol + '://' + req.get('host') + req.originalUrl;
-        const proxyUrl = require('url').parse(nodebbServiceUrl + urlParam);
+        const proxyUrl = new URL(nodebbServiceUrl + urlParam);
         logger.info({ message: `Proxy req url :  ${incomingUrl}` });
         logger.info({ message: `Upstream req url :  ${proxyUrl.href}` });
-        return proxyUrl.path;
+        return proxyUrl.pathname + proxyUrl.search;
       }
     },
     userResDecorator: (proxyRes, proxyResData, req, res) => {
@@ -322,17 +325,19 @@ function proxyObjectForPutApi() {
         urlParam = urlParam.replace(methodSlug, '');
       }
       logger.info({ "message": `request comming from ${req.originalUrl}` })
-      let query = require('url').parse(req.url).query;
+      const parsedUrl = new URL(req.url, 'http://localhost');
+      let query = parsedUrl.search;
       // logging the Entry events
       telemetryHelper.logAPIEvent(req, 'discussion-middleware');
       if (query) {
-        return require('url').parse(nodebbServiceUrl + urlParam).path
+        const targetUrl = new URL(nodebbServiceUrl + urlParam);
+        return targetUrl.pathname + targetUrl.search;
       } else {
         const incomingUrl = req.protocol + '://' + req.get('host') + req.originalUrl;
-        const proxyUrl = require('url').parse(nodebbServiceUrl + urlParam);
+        const proxyUrl = new URL(nodebbServiceUrl + urlParam);
         logger.info({ message: `Proxy req url :  ${incomingUrl}` });
         logger.info({ message: `Upstream req url :  ${proxyUrl.href}` });
-        return proxyUrl.path;
+        return proxyUrl.pathname + proxyUrl.search;
       }
     },
     userResDecorator: (proxyRes, proxyResData, req, res) => {
@@ -374,15 +379,17 @@ function proxyObjectWithoutAuth() {
     proxyReqPathResolver: function (req) {
       let urlParam = req.originalUrl.replace(BASE_REPORT_URL, '');
       logger.info({ "message": `request comming from ${req.originalUrl}` })
-      let query = require('url').parse(req.url).query;
+      const parsedUrl = new URL(req.url, 'http://localhost');
+      let query = parsedUrl.search;
       if (query) {
-        return require('url').parse(nodebbServiceUrl + urlParam).path
+        const targetUrl = new URL(nodebbServiceUrl + urlParam);
+        return targetUrl.pathname + targetUrl.search;
       } else {
         const incomingUrl = req.protocol + '://' + req.get('host') + req.originalUrl;
-        const proxyUrl = require('url').parse(nodebbServiceUrl + urlParam);
+        const proxyUrl = new URL(nodebbServiceUrl + urlParam);
         logger.info({ message: `Proxy req url :  ${incomingUrl}` });
         logger.info({ message: `Upstream req url :  ${proxyUrl.href}` });
-        return proxyUrl.path;
+        return proxyUrl.pathname + proxyUrl.search;
       }
     },
     userResDecorator: (proxyRes, proxyResData, req, res) => {
