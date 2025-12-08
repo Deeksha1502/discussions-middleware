@@ -2,6 +2,9 @@
   "name": "nodebb-middleware",
   "version": "5.0.0",
   "private": true,
+  "engines": {
+    "node": "22.17.1"
+  },
   "scripts": {
     "start": "node ./bin/www",
     "backend-test": "nyc mocha 'tests/**/*.spec.js'",
@@ -10,7 +13,7 @@
   "dependencies": {
     "@project-sunbird/logger": "^0.0.9",
     "@project-sunbird/telemetry-sdk": "0.0.29",
-    "axios": "^0.26.0",
+    "axios": "^0.30.2",
     "chai": "4.2.0",
     "chai-http": "^4.3.0",
     "cookie-parser": "~1.4.4",
@@ -23,7 +26,7 @@
     "istanbul": "^0.4.5",
     "jade": "~1.11.0",
     "kafkajs": "^1.16.0",
-    "lodash": "^4.17.20",
+    "lodash": "^4.17.21",
     "mocha": "^8.2.1",
     "mock-require": "3.0.3",
     "mongodb": "^3.6.3",
