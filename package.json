@@ -33,7 +33,7 @@
     "morgan": "~1.9.1",
     "nock": "^13.0.5",
     "node-mocks-http": "1.8.1",
-    "nyc": "^17.1.0",
+    "nyc": "^15.1.0",
     "request": "^2.88.2",
     "sb-config-util": "file:libs/sb-config-util",
     "sb_logger_util": "file:libs/sb_logger_util",
