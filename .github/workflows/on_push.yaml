@@ -1,0 +1,45 @@
+name: Build and Publish Docker Image
+
+on:
+  push:
+    tags:
+      - "*"
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+        with:
+          submodules: recursive
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract image tag details
+        id: image_vars
+        run: |
+          OWNER_LOWER=$(echo "${GITHUB_REPOSITORY_OWNER}" | tr '[:upper:]' '[:lower:]')
+          REPO_NAME=$(basename "${GITHUB_REPOSITORY}")
+          REPO_LOWER=$(echo "${REPO_NAME}" | tr '[:upper:]' '[:lower:]')
+
+          SHORT_SHA=$(git rev-parse --short HEAD)
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./Dockerfile
+          labels: commitHash=${{ steps.image_vars.outputs.SHORT_SHA }}
+          push: true
+          tags: ${{ env.IMAGE_NAME }}:${{ env.IMAGE_TAG }}
