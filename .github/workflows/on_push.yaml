@@ -36,25 +36,22 @@ jobs:
           REPO_NAME_LOWERCASE=$(echo "${GITHUB_REPOSITORY}" | tr '[:upper:]' '[:lower:]')
           TAG_NAME=$(echo "${GITHUB_REF_NAME}" | tr '[:upper:]' '[:lower:]')
           BUILD_TAG="${TAG_NAME}_${{ steps.vars.outputs.commit_hash }}_${GITHUB_RUN_NUMBER}"
+          ORG="ghcr.io/${REPO_NAME_LOWERCASE%/*}"
 
-          echo "IMAGE_NAME=ghcr.io/${REPO_NAME_LOWERCASE}" >> $GITHUB_ENV
+          echo "ORG=${ORG}" >> $GITHUB_ENV
           echo "IMAGE_TAG=${BUILD_TAG}" >> $GITHUB_ENV
 
       - name: Build Docker image using build.sh
         run: |
           chmod 777 build.sh
-          /bin/bash build.sh ${{ env.IMAGE_TAG }} ${{ runner.name }} ${{ env.IMAGE_NAME }}
+          /bin/bash build.sh ${{ env.IMAGE_TAG }} ${{ runner.name }} ${{ env.ORG }}
 
       - name: Push Docker image
-        run: docker push ${{ env.IMAGE_NAME }}:${{ env.IMAGE_TAG }}
+        run: docker push ${{ env.ORG }}/discussion-middleware:${{ env.IMAGE_TAG }}
       
-
-
-      
-
-      
-
-
-
-
-
+      - name: Upload metadata artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: metadata
+          path: metadata.json
+          retention-days: 30
