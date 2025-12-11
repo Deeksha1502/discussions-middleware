@@ -27,26 +27,34 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Get short commit hash
-        id: vars
-        run: echo "commit_hash=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
-
-      - name: Prepare Docker image name and tag
+      - name: Extract image tag details
+        id: image_vars
         run: |
-          ORG="ghcr.io/$(echo '${{ github.repository_owner }}' | tr '[:upper:]' '[:lower:]')"
-          TAG_NAME=$(echo '${{ github.ref_name }}' | tr '[:upper:]' '[:lower:]')
-          BUILD_TAG="${TAG_NAME}_${{ steps.vars.outputs.commit_hash }}_${GITHUB_RUN_NUMBER}"
-          echo "ORG=$ORG" >> $GITHUB_ENV
-          echo "IMAGE_TAG=$BUILD_TAG" >> $GITHUB_ENV
-          echo "Final Image: $ORG/discussion-middleware:$BUILD_TAG"
+          OWNER_LOWER=$(echo "${GITHUB_REPOSITORY_OWNER}" | tr '[:upper:]' '[:lower:]')
+          REPO_NAME=$(basename "${GITHUB_REPOSITORY}")
+          REPO_LOWER=$(echo "${REPO_NAME}" | tr '[:upper:]' '[:lower:]')
 
-      - name: Build Docker image using build.sh
+          SHORT_SHA=$(git rev-parse --short HEAD)
+          TAG_LOWER=$(echo "${GITHUB_REF_NAME}" | tr '[:upper:]' '[:lower:]')
+
+          IMAGE_NAME="ghcr.io/${OWNER_LOWER}/${REPO_LOWER}"
+          IMAGE_TAG="${TAG_LOWER}_${SHORT_SHA}_${GITHUB_RUN_NUMBER}"
+
+          echo "IMAGE_NAME=${IMAGE_NAME}" >> $GITHUB_ENV
+          echo "IMAGE_TAG=${IMAGE_TAG}" >> $GITHUB_ENV
+
+          echo "Final image will be: ${IMAGE_NAME}:${IMAGE_TAG}"
+
+      - name: Build Docker image
         run: |
-          chmod +x build.sh
-          /bin/bash build.sh "${IMAGE_TAG}" "${{ runner.name }}" "${ORG}"
+          docker build \
+            -f ./Dockerfile \
+            --label commitHash=$(git rev-parse --short HEAD) \
+            -t "${IMAGE_NAME}:${IMAGE_TAG}" \
+            .
 
-      - name: List Docker images (debug)
+      - name: List Docker images
         run: docker images
 
       - name: Push Docker image
-        run: docker push "${ORG}/discussion-middleware:${IMAGE_TAG}"
+        run: docker push "${IMAGE_NAME}:${IMAGE_TAG}"
