@@ -30,31 +30,23 @@ jobs:
       - name: Extract image tag details
         id: image_vars
         run: |
-          # Create lowercase repo path (ghcr.io/<owner>/<repo>)
-          REPO_PATH=$(echo "${GITHUB_REPOSITORY}" | tr '[:upper:]' '[:lower:]')
-          IMAGE_NAME="ghcr.io/${REPO_PATH}"
-
-          # Use the pushed git tag as the main image version
-          IMAGE_TAG_VERSION="${GITHUB_REF_NAME}"
-
-          # Short commit SHA for secondary tagging
+          OWNER_LOWER=$(echo "${GITHUB_REPOSITORY_OWNER}" | tr '[:upper:]' '[:lower:]')
+          REPO_NAME=$(basename "${GITHUB_REPOSITORY}")
+          REPO_LOWER=$(echo "${REPO_NAME}" | tr '[:upper:]' '[:lower:]')
           SHORT_SHA=$(git rev-parse --short HEAD)
-
-          # Create multi-line tag list for Docker buildx
-          FULL_TAGS="${IMAGE_NAME}:${IMAGE_TAG_VERSION}${IMAGE_NAME}:${SHORT_SHA}"
-
-          # Export outputs for next step
-          echo "DOCKER_TAGS=${FULL_TAGS}" >> $GITHUB_OUTPUT
-          echo "SHORT_SHA=${SHORT_SHA}" >> $GITHUB_OUTPUT
-
-          echo "Image will be tagged as:"
-          echo "${FULL_TAGS}"
+          TAG_NAME="${GITHUB_REF_NAME}"
+          
+          IMAGE_NAME="ghcr.io/${OWNER_LOWER}/${REPO_LOWER}"
+          IMAGE_TAG="${TAG_NAME}_${SHORT_SHA}"
+          
+          echo "IMAGE_NAME=${IMAGE_NAME}" >> "$GITHUB_OUTPUT"
+          echo "IMAGE_TAG=${IMAGE_TAG}" >> "$GITHUB_OUTPUT"
 
       - name: Build and push Docker image
         uses: docker/build-push-action@v5
         with:
           context: .
           file: ./Dockerfile
-          labels: commitHash=${{ steps.image_vars.outputs.SHORT_SHA }}
+          labels: commitHash=${{ steps.image_vars.outputs.IMAGE_TAG }}
           push: true
-          tags: ${{ steps.image_vars.outputs.DOCKER_TAGS }}
+          tags: ${{ steps.image_vars.outputs.IMAGE_NAME }}:${{ steps.image_vars.outputs.IMAGE_TAG }}
