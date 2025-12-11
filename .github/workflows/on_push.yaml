@@ -46,15 +46,5 @@ jobs:
           echo "Final image will be: ${IMAGE_NAME}:${IMAGE_TAG}"
 
       - name: Build Docker image
-        run: |
-          docker build \
-            -f ./Dockerfile \
-            --label commitHash=$(git rev-parse --short HEAD) \
-            -t "${IMAGE_NAME}:${IMAGE_TAG}" \
-            .
-
-      - name: List Docker images
-        run: docker images
-
       - name: Push Docker image
         run: docker push "${IMAGE_NAME}:${IMAGE_TAG}"
